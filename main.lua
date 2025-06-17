@@ -41,9 +41,12 @@ GLOBALS START
 ]]
 _G.json = require("src.lib.json")
 
+_G.log = require("src.log")
+
 _G.typecheck = require("src.typecheck.typecheck")
 
 _G.objects = require("src.objects.objects")
+
 --[[
 =========
 GLOBALS END

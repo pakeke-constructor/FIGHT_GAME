@@ -185,7 +185,7 @@ end
 
 if consts.FILE_LOG_LEVEL ~= "none" then
     assert(love.filesystem.createDirectory("logs"), "unable to create logs directory")
-    local filename = os.date("logs/DECKBUILDER_%Y_%m_%d_%H_%M_%S.txt")
+    local filename = os.date("logs/LOG_%Y_%m_%d_%H_%M_%S.txt")
     local file = assert(love.filesystem.openFile(filename, "a"))
     local logger = createWriteableFlushableLogger(file)
     logger.level = consts.FILE_LOG_LEVEL

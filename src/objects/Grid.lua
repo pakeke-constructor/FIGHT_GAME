@@ -30,7 +30,6 @@ function Grid:init(width, height)
     self.grid = {} -- just a flat array
     for i=1, self.size do
         -- fill with false values. This avoids nasty serialization issues
-        -- (TODO: we probably should fix umg.serialize?)
         self.grid[i] = false
     end
 end
