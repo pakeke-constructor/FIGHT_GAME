@@ -1,36 +1,46 @@
 
 
 
----@class Group: objects.Class
-local Group = objects.Class("Group")
+---@class GroupSystem: objects.Class
+local GroupSystem = objects.Class("GroupSystem")
 
 
-function Group:init()
-    self.addbuffer = objects.Array()
-    self.
+function GroupSystem:init()
+    self._addbuffer = objects.Array()
+    self._entities = objects.Array()
 end
 
 
-function Group:addInstantly(e)
+function GroupSystem:addInstantly(e)
     assert(fg.exists(e))
+
 end
-function Group:addBuffered(e)
-    assert(fg.exists(e))
-end
-
-Group.add = Group.addInstantly
-
-
-
-function Group:removeInstantly(e)
+function GroupSystem:addBuffered(e)
     assert(fg.exists(e))
 end
 
+GroupSystem.add = GroupSystem.addInstantly
 
-function Group:flush()
-    for 
+
+
+function GroupSystem:removeInstantly(e)
+    assert(fg.exists(e))
 end
 
 
-return Group
+---@return fun(table: Entity[], i?: integer):integer, Entity[], number
+function GroupSystem:ipairs()
+    ---@diagnostic disable-next-line
+    return ipairs(self._entities)
+end
+
+
+function GroupSystem:flush()
+    for _, e in ipairs(self._addbuffer) do
+        self:addInstantly(e)
+    end
+end
+
+
+return GroupSystem
 

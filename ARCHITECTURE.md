@@ -15,8 +15,13 @@ src/
         Any code that makes the game "work" is here.
         Eg. draw, input, physics, enemy-spawning, etc
     entities/
-        Define entities here.
-        This includes player-characters, abilities, 
+        characters/ (includes ability-definitions!)
+        enemies/
+        objects/
+        decoration/
+        common/ stuff like bullets, coins, particles, etc
+        powerups/
+        perks/ (perks shared between all characters)
 ```
 
 
@@ -28,17 +33,6 @@ ECS, except ents are added to systems manually.
 EG:
 ```lua
 local e = {x=1, y=1, image="bullet"}
-
-
-fg.createEntity(e)
-
-fg.destroyEntity(e)
--- removes from ECS
-
-fg.exists(e) -- true or false
-
-
-fg.defineEvent(ev)
 
 
 
@@ -55,9 +49,9 @@ function Sys:init()
 end
 
 
-Sys:on("drawEntity", function(ent)
-    -- called when you do `fg.call("drawEntity", ent)`
-end)
+function Sys:drawEntity(ent)
+    -- called when you do `world:call("drawEntity", ent)`
+end
 
 
 fg.getSystem(SystemClass) -- gets the system-instance from a SystemClass
