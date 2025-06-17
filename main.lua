@@ -39,7 +39,8 @@ end
 GLOBALS START
 =========
 ]]
-_G.json = require("src.lib.json")
+_G.json = require("lib.json")
+_G.consts = require("src.consts")
 
 _G.log = require("src.log")
 

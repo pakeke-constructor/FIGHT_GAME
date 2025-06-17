@@ -1,6 +1,6 @@
 
 -- Need to make sure this is loaded; it may not be loaded yet
-local Class = require("shared.Class")
+local Class = require(".Class")
 
 --[[
 

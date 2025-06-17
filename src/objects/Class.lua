@@ -74,6 +74,10 @@ local function Class(name)
     ]]}
     class.___implementors[class] = true
 
+    typecheck.addType(name, function(x)
+        return class:isInstance(x), "Expected " .. name
+    end)
+
     function class:isInstance(x)
         assertStaticCall(self, class)
         if type(x) ~= "table" then

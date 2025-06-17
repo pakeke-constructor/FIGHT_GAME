@@ -1,5 +1,5 @@
 
-local Class = require("shared.Class")
+local Class = require(".Class")
 
 --[[
 	heap data structure

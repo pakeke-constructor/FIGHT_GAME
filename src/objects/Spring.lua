@@ -10,8 +10,9 @@ https://github.com/a327ex/blog/issues/60
 
 
 ]]
-local Class = require("shared.Class")
+local Class = require(".Class")
 
+---@class objects.Spring: objects.Class
 local Spring = Class("objects:Spring")
 
 local DEFAULT = {
@@ -30,7 +31,7 @@ end
 
 
 function Spring:update(dt)
-    local a = -self.stiffness*(self.x - self.target_x) - self.damping*self.vx
+    local a = -self.stiffness*(self.x - self.target) - self.damping*self.vx
     self.vx = self.vx + a*dt
     self.x = self.x + self.vx*dt
 end

@@ -4,7 +4,7 @@
 ---@class objects
 local objects = {}
 
-local objectsTools = require("shared.tools")
+local objectsTools = require(".tools")
 for k,v in pairs(objectsTools) do
     objects[k] = v
 end

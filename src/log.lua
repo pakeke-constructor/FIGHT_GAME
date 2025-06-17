@@ -172,10 +172,6 @@ end
 
 
 
-
-local consts = require(".consts")
-
-
 if consts.CONSOLE_LOG_LEVEL ~= "none" then
     local logger = createConsoleLogger()
     logger.level = consts.CONSOLE_LOG_LEVEL

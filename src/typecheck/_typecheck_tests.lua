@@ -1,6 +1,6 @@
 
 
-local typecheck = require("shared.typecheck")
+local typecheck = require(".typecheck")
 
 
 

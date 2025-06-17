@@ -1,6 +1,6 @@
 
 
-local Class = require("shared.class")
+local Class = require(".Class")
 
 local test = false
 

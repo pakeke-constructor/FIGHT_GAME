@@ -1,5 +1,5 @@
 
-local Class = require("shared.Class")
+local Class = require(".Class")
 
 ---Availability: Client and Server
 ---@class objects.Array: objects.Class
