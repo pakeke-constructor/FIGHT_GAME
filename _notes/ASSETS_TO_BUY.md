@@ -20,6 +20,12 @@ https://elthen.itch.io/2d-pixel-art-cursed-weapons
 
 
 
+## SOUND FX:
+https://heltonyan.itch.io/pixelcombat
+(freesound.org in general)
+
+
+
 ## GUI:
 - Avatars
 https://phantonaut.itch.io/pixel-mob-avatars-1-32x32
