@@ -18,6 +18,12 @@ end
 
 
 
+local currentWorld = nil
+
+function fg.getWorld()
+    return currentWorld
+end
+
 local ents = {}
 local rembuffer = {}
 

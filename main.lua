@@ -44,15 +44,19 @@ _G.consts = require("src.consts")
 
 _G.log = require("src.log")
 
+---@diagnostic disable-next-line
 _G.typecheck = require("src.typecheck.typecheck")
 
 _G.objects = require("src.objects.objects")
 
+_G.fg = require("src.fg")
 --[[
 =========
 GLOBALS END
 =========
 ]]
+
+
 setmetatable(_G, {
     __newindex = function (t,k)
         error("no new globals! " .. tostring(k))
