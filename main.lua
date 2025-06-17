@@ -1,9 +1,7 @@
 
 
 
---[[
-relative-require
-]]
+-- relative-require
 do
 local stack = {""}
 local oldRequire = require
@@ -41,7 +39,10 @@ end
 GLOBALS START
 =========
 ]]
+_G.json = require("src.lib.json")
+
 _G.typecheck = require("src.typecheck.typecheck")
+
 _G.objects = require("src.objects.objects")
 --[[
 =========
