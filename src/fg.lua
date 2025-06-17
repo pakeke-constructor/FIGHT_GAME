@@ -27,10 +27,14 @@ local rembuffer = {}
 function fg.create(e)
     ents[e] = true
 end
+function fg.delete(e)
+    table.insert(rembuffer, e)
+end
 
 ---@param e Entity
 function fg.destroy(e)
-    table.insert(rembuffer, e)
+    fg.delete(e)
+    fg.call("destroy", e)
 end
 
 ---@param e Entity
@@ -69,22 +73,46 @@ end
 
 
 
-function fg.defineEvent()
+--- events:
+--- fg.on, fg.call, fg.defineEvent
+do
+local events = {--[[
+    [name] -> { f1, f2, ... }
+]]}
+
+
+function fg.defineEvent(ev)
     assert(fg.isLoadTime())
-    local funcs = objects.Array()
-
-    local function call(...)
-        for _,f in ipairs(funcs) do
-            f(...)
-        end
-    end
-
-    local function on(func)
-        assert(fg.isLoadTime())
-        funcs:add(func)
-    end
-
-    return call, on
+    events[ev] = objects.Array()
 end
+
+---@param ev string
+---@param ... unknown
+function fg.call(ev, ...)
+    local funcs = events[ev]
+    if (not funcs) then
+        error("Invalid event: " .. tostring(ev))
+    end
+    for _,f in ipairs(funcs) do
+        f(...)
+    end
+end
+
+---@param ev string
+---@param func fun(...):nil
+function fg.on(ev, func)
+    assert(fg.isLoadTime())
+    local funcs = events[func]
+    if (not funcs) then
+        error("Invalid event: " .. tostring(ev))
+    end
+    funcs:add(func)
+end
+
+end
+
+
+
+
 
 
