@@ -1,6 +1,6 @@
 
 
----@class es.World: objects.Class
+---@class es.World
 local World = objects.Class("es:World")
 
 
@@ -60,9 +60,9 @@ local function removeCallback(self, ev, sys)
     if (not systems) then
         error("Invalid event: " .. tostring(ev))
     end
-    for i, syss in ipairs(funcs) do
+    for i, syss in ipairs(systems) do
         if syss == sys then
-            funcs:remove(i)
+            systems:remove(i)
         end
     end
 end
@@ -70,11 +70,11 @@ end
 
 
 
----@param systemClass System
+---@param systemClass es.System
 ---@return boolean
 function World:addSystem(systemClass)
     if self.systems[systemClass] then return false end
-    local sys = systemClass()
+    local sys = systemClass(self)
     for _, cb in ipairs(sys:getEventCallbacks()) do
         addCallback(self, cb, sys)
     end
@@ -83,13 +83,27 @@ function World:addSystem(systemClass)
 end
 
 
----@param systemClass System
+
+
+---@param systemClass es.System
+---@return es.System|table<string,any>
+function World:getSystem(systemClass)
+    return self.systems[systemClass]
+end
+
+
+
+
+
+
+
+---@param systemClass es.System
 function World:removeSystem(systemClass)
     local sys = self.systems[systemClass]
     if not sys then return end
     self.systems[systemClass] = nil
     for _, cb in ipairs(sys:getEventCallbacks()) do
-        removeCallback(self, cb, sys[cb])
+        removeCallback(self, cb, sys)
     end
 end
 
@@ -103,15 +117,14 @@ end
 ---@param ev string
 ---@param ... unknown
 function World:call(ev, ...)
-    local funcs = self.events[ev]
-    if (not funcs) then
+    local systems = self.events[ev]
+    if (not systems) then
         error("Invalid event: " .. tostring(ev))
     end
-    for _,f in ipairs(funcs) do
-        f(...)
+    for _,sys in ipairs(systems) do
+        sys[ev](sys, ...)
     end
 end
-
 
 
 

@@ -30,6 +30,9 @@ end
 
 
 local es = require("src.es.es")
+if consts.TEST then
+    require("src.es._ES_tests")
+end
 
 fg.System = es.System
 fg.GroupSystem = es.GroupSystem
