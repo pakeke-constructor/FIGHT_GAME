@@ -35,6 +35,15 @@ EG:
 local e = {x=1, y=1, image="bullet"}
 
 
+-- ALL entities have an x,y component
+local EType = fg.EntityType("my_ent", {
+    init = function(ent, x, y)
+    end,
+
+    name = "foo",
+    maxHealth = 1
+})
+
 
 
 local Sys = fg.System()
@@ -57,6 +66,14 @@ fg.getSystem(SystemClass) -- gets the system-instance from a SystemClass
 fg.getWorld()
 
 
+
+
+-- attachments can hook onto callbacks, called automatically :call()
+local a = attachments
+e:attach(a.Buff("health", {time = 10, potency = 2}))
+e:attach(a.Fire({time = 200})) -- fire lasts for 200 seconds
+
+e:attach(a.Explosive(3)) -- entity explodes on death
 
 
 
