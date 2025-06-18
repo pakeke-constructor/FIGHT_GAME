@@ -13,6 +13,10 @@ local function stackRequire(path)
 end
 
 
+--[[
+we *MUST* overwrite `require` here,
+or else the stack will become malformed.
+]]
 function _G.require(path)
     if (path:sub(1,1) == ".") then
         -- its a relative-require!

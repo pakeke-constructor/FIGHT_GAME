@@ -1,2 +1,0 @@
-
-from np import array
