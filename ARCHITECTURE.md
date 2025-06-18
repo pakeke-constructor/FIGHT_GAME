@@ -48,7 +48,6 @@ function Sys:init()
     -- the `:init` function will be called again
 end
 
-
 function Sys:drawEntity(ent)
     -- called when you do `world:call("drawEntity", ent)`
 end

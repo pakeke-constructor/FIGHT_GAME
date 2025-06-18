@@ -1,6 +1,7 @@
 
 
 
+---@class fg
 local fg = {}
 
 
@@ -18,29 +19,69 @@ end
 
 
 
-local currentWorld = nil
 
-function fg.getWorld()
-    return currentWorld
+local events = objects.Array()
+
+function fg.defineEvent(ev)
+    assert(fg.isLoadTime())
+    events:add(ev)
 end
 
----@alias Entity table<string, any>
+
+
+local es = require("src.es.es")
+
+fg.System = es.System
+fg.GroupSystem = es.GroupSystem
+fg.Attachment = es.Attachment
+
+
+
+---@type es.World?
+local currentWorld = nil
+
+function fg.newWorld()
+    currentWorld = es.World()
+    for _,ev in ipairs(events) do
+        currentWorld:defineEvent(ev)
+    end
+
+    -- add all auto-systems
+end
+
+
+---@return es.World
+function fg.getWorld()
+    return assert(currentWorld)
+end
+
 
 ---@param e Entity
 function fg.create(e)
+    assert(currentWorld)
+    currentWorld:incorporateEntity(e)
 end
+
+---@param e Entity
 function fg.delete(e)
+    if currentWorld then
+        currentWorld:removeEntity(e)
+    end
 end
+
 
 ---@param e Entity
 function fg.destroy(e)
-    fg.delete(e)
-    fg.call("destroy", e)
+    if currentWorld then
+        fg.delete(e)
+        currentWorld:call("destroy", e)
+    end
 end
+
 
 ---@param e Entity
 function fg.exists(e)
-    return ents[e]
+    return currentWorld and currentWorld:exists(e)
 end
 
 
@@ -70,50 +111,6 @@ function fg.requireFolder(path)
         end
     end)
 end
-
-
-
-
---- events:
---- fg.on, fg.call, fg.defineEvent
-do
-local events = {--[[
-    [name] -> { f1, f2, ... }
-]]}
-
-
-function fg.defineEvent(ev)
-    assert(fg.isLoadTime())
-    events[ev] = objects.Array()
-end
-
----@param ev string
----@param ... unknown
-function fg.call(ev, ...)
-    local funcs = events[ev]
-    if (not funcs) then
-        error("Invalid event: " .. tostring(ev))
-    end
-    for _,f in ipairs(funcs) do
-        f(...)
-    end
-end
-
----@param ev string
----@param func fun(...):nil
-function fg.on(ev, func)
-    assert(fg.isLoadTime())
-    local funcs = events[func]
-    if (not funcs) then
-        error("Invalid event: " .. tostring(ev))
-    end
-    funcs:add(func)
-end
-
-end
-
-
-
 
 
 

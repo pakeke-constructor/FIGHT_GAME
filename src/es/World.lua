@@ -4,45 +4,64 @@
 local World = objects.Class("es:World")
 
 
+---@alias Entity table<string,any>
+
+
 
 function World:init()
     self.systems = {--[[
         [SystemClass] -> 
     ]]}
 
-    self.entities = objects.Set()
+    self.entities = {--[[
+        [e] -> true
+    ]]}
 
     self.rembuffer = objects.Set()
 
     self.events = {--[[
-        [ev] -> {f1, f2, f3}
+        [ev] -> {sys1, sys2, sys3, ...}
     ]]}
 end
 
 
 
+---@param e Entity
+---@return boolean
+function World:exists(e)
+    return self.entities[e]
+end
+
+function World:incorporateEntity(e)
+    self.entities[e] = true
+end
+
+function World:removeEntity(e)
+    self.rembuffer:add(e)
+end
+
 
 ---@param self es.World
+---@param sys es.System
 ---@param ev string
----@param func function
-local function addCallback(self, ev, func)
-    local funcs = self.events[ev]
-    if (not funcs) then
+local function addCallback(self, ev, sys)
+    local systems = self.events[ev]
+    if (not systems) then
         error("Invalid event: " .. tostring(ev))
     end
-    funcs:add(func)
+    systems:add(sys)
 end
 
 ---@param self es.World
 ---@param ev string
----@param func function
-local function removeCallback(self, ev, func)
-    local funcs = self.events[ev]
-    if (not funcs) then
+---@param sys es.System
+local function removeCallback(self, ev, sys)
+    local systems = self.events[ev]
+    if (not systems) then
         error("Invalid event: " .. tostring(ev))
     end
-    for i, f in ipairs(funcs) do
-        if f == func then
+    for i, syss in ipairs(funcs) do
+        if syss == sys then
             funcs:remove(i)
         end
     end
@@ -57,7 +76,7 @@ function World:addSystem(systemClass)
     if self.systems[systemClass] then return false end
     local sys = systemClass()
     for _, cb in ipairs(sys:getEventCallbacks()) do
-        addCallback(self, cb, sys[cb])
+        addCallback(self, cb, sys)
     end
     self.systems[systemClass] = sys
     return true
