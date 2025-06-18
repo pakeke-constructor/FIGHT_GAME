@@ -1,26 +1,26 @@
 
 
 
----@class GroupSystem: objects.Class
-local GroupSystem = objects.Class("GroupSystem")
+---@class ComponentSystem: objects.Class
+local ComponentSystem = objects.Class("ComponentSystem")
 
 
-function GroupSystem:init()
+function ComponentSystem:init()
     self._addbuffer = objects.Array()
     self._entities = objects.Array()
 end
 
 
 ---@param ent Entity
-function GroupSystem:onAdded(ent)
+function ComponentSystem:onAdded(ent)
 end
 
 ---@param ent Entity
-function GroupSystem:onRemoved(ent)
+function ComponentSystem:onRemoved(ent)
 end
 
 
-function GroupSystem:addInstantly(e)
+function ComponentSystem:addInstantly(e)
     assert(fg.exists(e))
     self._entities:add(e)
     self._addbuffer:remove(e)
@@ -29,16 +29,16 @@ function GroupSystem:addInstantly(e)
     end
 end
 
-function GroupSystem:addBuffered(e)
+function ComponentSystem:addBuffered(e)
     assert(fg.exists(e))
     self._addbuffer:add(e)
 end
 
-GroupSystem.add = GroupSystem.addInstantly
+ComponentSystem.add = ComponentSystem.addInstantly
 
 
 
-function GroupSystem:removeInstantly(e)
+function ComponentSystem:removeInstantly(e)
     assert(fg.exists(e))
     self._addbuffer:remove(e)
     self._entities:remove(e)
@@ -49,13 +49,13 @@ end
 
 
 ---@return fun(table: Entity[], i?: integer):integer, Entity[], number
-function GroupSystem:ipairs()
+function ComponentSystem:ipairs()
     ---@diagnostic disable-next-line
     return ipairs(self._entities)
 end
 
 
-function GroupSystem:flush()
+function ComponentSystem:flush()
     if #self._addbuffer <= 0 then
         return
     end
@@ -70,10 +70,10 @@ end
 
 --- gets events for this system
 ---@return string[]
-function GroupSystem:getEventCallbacks()
+function ComponentSystem:getEventCallbacks()
     local buf = objects.Array()
     for k,v in pairs(self) do
-        if type(v) == "function" and (not GroupSystem[k]) then
+        if type(v) == "function" and (not ComponentSystem[k]) then
             buf:add(k)
         end
     end
@@ -81,5 +81,5 @@ function GroupSystem:getEventCallbacks()
 end
 
 
-return GroupSystem
+return ComponentSystem
 

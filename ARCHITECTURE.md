@@ -63,17 +63,22 @@ fg.getWorld()
 
 
 
-local DrawSys = fg.GroupSystem("DrawSys")
+local DrawSys = fg.ComponentSystem("drawable")
+-- component-systems can only take 1 component. 
+-- This works for like 95% of the use cases, in practice
+
 
 function DrawSys:onAdded(ent)
 end
 function DrawSys:onRemove(ent)
 end
 
-DrawSys:on(ev, func)
 
-DrawSys:add(e)
-DrawSys:remove(e)
+function DrawSys:draw()
+    for _,e in self:ipairs() do
+        drawEntity(e)
+    end
+end
 
 DrawSys:flush()
 -- does all addition operations, and all removal operations.

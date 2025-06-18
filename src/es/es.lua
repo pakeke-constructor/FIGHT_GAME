@@ -1,13 +1,13 @@
 
 
 local System = require(".System")
-local GroupSystem = require(".GroupSystem")
+local ComponentSystem = require(".ComponentSystem")
 local World = require(".World")
 
 
 return {
     System = System,
-    GroupSystem = GroupSystem,
+    ComponentSystem = ComponentSystem,
     World = World
 }
 
