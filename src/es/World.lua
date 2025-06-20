@@ -10,11 +10,22 @@ local World = objects.Class("es:World")
 
 function World:init()
     self.systems = {--[[
-        [SystemClass] -> 
+        [SystemClass] -> system
+    ]]}
+
+    self.definedComponents = {--[[
+        [compName] -> typecheckFunc?
+    ]]}
+    self.definedEntityTypes = {--[[
+        [etypeName] -> etype
     ]]}
 
     self.entities = {--[[
         [e] -> true
+    ]]}
+
+    self.componentSystems = {--[[
+        [comp] -> system
     ]]}
 
     self.rembuffer = objects.Set()
@@ -26,19 +37,90 @@ end
 
 
 
+
+local defCompTc = typecheck.assert("string", "function?")
+
+---@param comp string
+---@param checker (fun(x:any):boolean)?
+function World:defineComponent(comp, checker)
+    defCompTc(comp, checker)
+    self.definedComponents[comp] = checker or nil
+end
+
+
+
+local defEntityTc = typecheck.assert("string", "table")
+
+---@param name string
+---@param etype table<string, any>
+function World:defineEntity(name, etype)
+    defEntityTc(name, etype)
+    self.definedEntityTypes[name] = etype
+end
+
+
+function World:_incorporateEntity(e)
+    self.entities[e] = true
+end
+
+
+local newEntityTc = typecheck.assert("number", "number")
+
+
+---@param name string
+---@param x number
+---@param y number
+---@param ... unknown
+---@return Entity
+function World:newEntity(name, x, y, ...)
+    newEntityTc(name, x, y)
+    local ctor = self.definedEntityTypes[name]
+    if not ctor then
+        error("Invalid entity-type: " .. tostring(name))
+    end
+
+    local e = ctor(x,y,...)
+    self:_incorporateEntity(e)
+    return e
+end
+
+
+
+
 ---@param e Entity
 ---@return boolean
 function World:exists(e)
     return self.entities[e]
 end
 
-function World:incorporateEntity(e)
-    self.entities[e] = true
-end
-
-function World:removeEntity(e)
+function World:_removeEntity(e)
     self.rembuffer:add(e)
 end
+
+
+---@param e Entity
+---@param comp string
+function World:_addComponent(e, comp)
+    ---@type es.ComponentSystem
+    local sys = self.componentSystems[comp]
+    if sys then
+        sys:_addBuffered(e)
+    end
+end
+
+
+
+---@param e Entity
+---@param comp string
+function World:_removeComponent(e, comp)
+    ---@type es.ComponentSystem
+    local sys = self.componentSystems[comp]
+    if sys then
+        sys:_removeInstantly(e)
+    end
+end
+
+
 
 
 ---@param self es.World
@@ -75,6 +157,13 @@ end
 function World:addSystem(systemClass)
     if self.systems[systemClass] then return false end
     local sys = systemClass(self)
+    local comp = sys._component
+    if comp then
+        if self.componentSystems[comp] then
+            error("Overwriting component system: " .. tostring(comp))
+        end
+        self.componentSystems[comp] = sys
+    end
     for _, cb in ipairs(sys:getEventCallbacks()) do
         addCallback(self, cb, sys)
     end
@@ -90,7 +179,6 @@ end
 function World:getSystem(systemClass)
     return self.systems[systemClass]
 end
-
 
 
 
@@ -114,15 +202,24 @@ function World:defineEvent(ev)
 end
 
 
+local function callAttachments(ent, attachments)
+    --nyi
+end
+
+
 ---@param ev string
+---@param maybe_ent any
 ---@param ... unknown
-function World:call(ev, ...)
+function World:call(ev, maybe_ent, ...)
     local systems = self.events[ev]
     if (not systems) then
         error("Invalid event: " .. tostring(ev))
     end
+    if self:exists(maybe_ent) and maybe_ent.attachments then
+        callAttachments(maybe_ent, maybe_ent.attachments)
+    end
     for _,sys in ipairs(systems) do
-        sys[ev](sys, ...)
+        sys[ev](sys, maybe_ent, ...)
     end
 end
 
