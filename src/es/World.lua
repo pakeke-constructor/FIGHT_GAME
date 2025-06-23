@@ -167,11 +167,10 @@ function World:addSystem(systemClass)
         self.componentSystems[comp] = sys
     end
     for _, event in ipairs(sys:getEventCallbacks()) do
-        local systems = self.events[event]
-        if (not systems) then
-            error("Invalid event: " .. tostring(event))
-        end
-        systems:add(sys)
+        self.events[event]:add(sys)
+    end
+    for _, question in ipairs(sys:getQuestionCallbacks()) do
+        self.questions[question]:add(sys)
     end
     self.systems[systemClass] = sys
     return true

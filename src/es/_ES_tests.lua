@@ -56,7 +56,7 @@ defEvent("errorCall")
 defEvent("assertEntityCount")
 
 w:defineQuestion("testQuestion", function(x,y)return x+y end, 0)
-fg.defineEvent(ev)
+fg.defineQuestion("testQuestion", function(x,y)return x+y end, 0)
 end
 
 
@@ -74,7 +74,7 @@ end
 function A:errorCall()
     error("fail")
 end
-function A:getX()
+function A:testQuestion()
     return self.x
 end
 end
@@ -90,6 +90,7 @@ w:call("testState")
 w:call("testState")
 
 assert(w:getSystem(A).x == 3)
+assert(w:ask("testQuestion") == 3)
 end
 
 
