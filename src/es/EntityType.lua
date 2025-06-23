@@ -9,9 +9,6 @@ function Entity:getEntityType()
 end
 
 
-function Entity:getTypename()
-    return self.___etype._name
-end
 
 function Entity:isSharedComponent(comp)
     local etype = self.___etype
@@ -25,12 +22,57 @@ function Entity:hasComponent(comp)
 end
 
 
+function Entity:_ensureAttachments()
+    if self.attachments then
+        return
+    end
 
+    self.attachments = {
+        calls = {--[[
+            [event] -> {atch1, atch2, ... }
+        ]]}
+    }
+end
+
+
+function Entity:attach(attachment)
+    self:_ensureAttachments()
+end
+
+function Entity:detach(attachment)
+
+end
+
+
+
+function Entity:_call(event, ...)
+
+end
+
+
+function Entity:getWorld()
+    return self._world
+end
+
+function Entity:getTypename()
+    return self._name
+end
+
+
+
+---@param comp string
+---@param val any
 function Entity:addComponent(comp, val)
     rawset(self,comp,val)
+    local world = self:getWorld()
+    world:_addComponent(self,comp)
 end
-function Entity:removeComponent(comp, val)
+
+---@param comp string
+function Entity:removeComponent(comp)
     rawset(self,comp,nil)
+    local world = self:getWorld()
+    world:_removeComponent(self,comp)
 end
 
 
@@ -41,8 +83,8 @@ function Entity:isDeleted()
 end
 
 function Entity:delete()
-    local etype = self:getEntityType()
-    etype._world:_removeEntity(self)
+    local w = self:getWorld()
+    w:_removeEntity(self)
     self.___deleted = true
 end
 

@@ -7,6 +7,9 @@ local World = objects.Class("es:World")
 ---@alias Entity table<string,any>
 
 
+local function isNumber(x)
+    return type(x) == "number"
+end
 
 function World:init()
     self.systems = {--[[
@@ -33,6 +36,10 @@ function World:init()
     self.events = {--[[
         [ev] -> {sys1, sys2, sys3, ...}
     ]]}
+
+    self:defineComponent("attachments")
+    self:defineComponent("x", isNumber)
+    self:defineComponent("y", isNumber)
 end
 
 
@@ -80,6 +87,8 @@ function World:newEntity(name, x, y, ...)
     end
 
     local e = ctor(x,y,...)
+    e.x = x
+    e.y = y
     self:_incorporateEntity(e)
     return e
 end
@@ -223,6 +232,17 @@ function World:call(ev, maybe_ent, ...)
     end
 end
 
+
+
+function World:flush()
+    for _,e in ipairs(self.rembuffer) do
+        for _, sys in pairs(self.componentSystems) do
+            ---@cast sys es.ComponentSystem
+            sys:_removeInstantly(e)
+        end
+    end
+    self.rembuffer:clear()
+end
 
 
 return World

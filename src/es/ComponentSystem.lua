@@ -66,6 +66,11 @@ function ComponentSystem:ipairs()
 end
 
 
+function ComponentSystem:getEntityCount()
+    return #self._entities
+end
+
+
 function ComponentSystem:flush()
     if self._addbuffer:size() > 0 then
         -- do a copy coz we modify addbuffer when iterating

@@ -67,9 +67,9 @@ types.ent = types.entity
 
 
 
-local function optional(f)
+local function optional(f, str)
     return function(x)
-        return x == nil or f(x)
+        return (x == nil) or f(x), "expected nil or " .. str
     end
 end
 
@@ -102,9 +102,9 @@ function parseToFunction(str)
         return parseUnion(str), str
     elseif str:find("%?") then
         -- if string contains question mark, treat the argument as optional.
-        str = str:gsub("%?","")
-        local func = parseToFunction(str)
-        return optional(func), str
+        local str2 = str:gsub("%?","")
+        local func = parseToFunction(str2)
+        return optional(func, str), str
     elseif types[str] then
         return types[str], str
     end
@@ -168,7 +168,7 @@ end
 
 
 local function parseArgCheckers(arr)
-    local key = {}
+    local keys = {}
     local retKey = true
 
     for i=1, #arr do
@@ -178,15 +178,15 @@ local function parseArgCheckers(arr)
         end
         arr[i] = func
 
-        if kfunc then
-            key[i] = kfunc
+        if type(arr[i]) == "string" then
+            keys[i] = arr[i]
         else
             retKey = false
         end
     end
 
     if retKey then
-        return table.concat(key, "\0")
+        return table.concat(keys, "\0")
     else
         return nil
     end
