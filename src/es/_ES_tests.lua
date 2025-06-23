@@ -1,10 +1,5 @@
 
 
-local System = require(".System")
-local ComponentSystem = require(".ComponentSystem")
-local World = require(".World")
-
-
 
 local function assertTablesEqual(expected, actual, message)
     message = message or "Assertion failed"
@@ -25,10 +20,27 @@ local function assertTablesEqual(expected, actual, message)
 end
 
 
+local System = require(".System")
+local ComponentSystem = require(".ComponentSystem")
+local World = require(".World")
+
+
+
 
 ---@type es.World
 local w = World()
 ---@cast w es.World
+
+
+local function clearWorld()
+    w:flush()
+    for e,_ in pairs(w.entities) do
+        e:delete()
+    end
+    w:flush()
+end
+
+
 
 local A = System()
 do
@@ -112,6 +124,7 @@ assertTablesEqual(e:getSharedComponents(), {
     sharedComp=3, foo="foo",
     _name="enty_1", _world=w -- is hacky, BRUHHH
 })
+clearWorld()
 end
 
 
@@ -164,9 +177,74 @@ e3:removeComponent("foo")
 w:call("assertEntityCount", 2) -- should be same...
 w:flush()
 w:call("assertEntityCount", 1) -- after flush, e3 was removed too
-
+clearWorld()
+w:call("assertEntityCount", 0)
 end
 
+
+
+
+
+-- testing same-frame add/remove operations
+do
+w:addSystem(CS)
+w:defineEntity("same_frame_1", { foo = "initial" })
+w:defineEntity("same_frame_2", {})
+
+-- Start with a clean state
+w:flush()
+w:call("assertEntityCount", 0)
+
+-- Create entities in same frame
+local e1 = w:newEntity("same_frame_1", 1, 1)
+local e2 = w:newEntity("same_frame_2", 2, 2)
+local e3 = w:newEntity("same_frame_2", 3, 3)
+
+-- Add components to make them tracked by ComponentSystem
+e2.foo = "added"
+e3.foo = "added"
+
+-- Should still be 0 before flush (operations are deferred)
+w:call("assertEntityCount", 0)
+
+-- Delete one entity in same frame as creation
+e2:delete()
+
+-- Remove component from another entity in same frame
+e3:removeComponent("foo")
+
+-- Should still be 0 before flush
+w:call("assertEntityCount", 0)
+
+-- Now flush and see final result
+w:flush()
+
+-- Should only have e1 (e2 was deleted, e3 had foo removed)
+w:call("assertEntityCount", 1)
+
+-- Test rapid add/remove/add cycle in same frame
+local e4 = w:newEntity("same_frame_2", 4, 4)
+e4.foo = "rapid"
+e4:removeComponent("foo")
+e4.foo = "re-added"
+
+-- Should still be 1 before flush
+w:call("assertEntityCount", 1)
+w:flush()
+-- Should be 2 after flush (e1 + e4)
+w:call("assertEntityCount", 2)
+
+-- Test delete and recreate with same definition in same frame
+e4:delete()
+local e5 = w:newEntity("same_frame_2", 5, 5)
+e5.foo = "new"
+
+w:call("assertEntityCount", 2) -- before flush
+w:flush()
+w:call("assertEntityCount", 2) -- after flush (e4 deleted, e5 added)
+
+clearWorld()
+end
 
 
 

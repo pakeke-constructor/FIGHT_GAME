@@ -46,6 +46,7 @@ function ComponentSystem:_addBuffered(e)
         return
     end
     self._addbuffer:add(e)
+    self._rembuffer:remove(e)
 end
 
 

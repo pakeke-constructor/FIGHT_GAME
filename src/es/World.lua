@@ -42,6 +42,13 @@ function World:init()
         [ev] -> {sys1, sys2, sys3, ...}
     ]]}
 
+    self.questions = {--[[
+        [qname] -> {sys1, sys2, sys3, ...}
+    ]]}
+
+    self.questionReducers = {} -- [qname] -> reducer
+    self.questionDefaultValues = {} -- [qname] -> defaultValue
+
     self:defineComponent("attachments")
     self:defineComponent("x", isNumber)
     self:defineComponent("y", isNumber)
@@ -226,7 +233,7 @@ end
 
 
 local function callAttachments(ent, attachments)
-    --nyi
+    -- TODO: implement this later.
 end
 
 
@@ -245,6 +252,47 @@ function World:call(ev, maybe_ent, ...)
         sys[ev](sys, maybe_ent, ...)
     end
 end
+
+
+
+local function askAttachments(ent, attachments, reducer, currentValue)
+    -- TODO: implement this later.
+end
+
+---@param question string
+---@param reducer fun(a:any, b:any): any
+---@param defaultValue any
+function World:defineQuestion(question, reducer, defaultValue)
+    self.questionDefaultValues[question] = defaultValue
+    self.questionReducers[question] = reducer
+
+    self.questions[question] = objects.Array()
+end
+
+
+
+---@param question string
+---@param maybe_ent Entity|any?
+---@param ... unknown
+function World:ask(question, maybe_ent, ...)
+    local systems = self.questions[question]
+    if (not systems) then
+        error("Invalid question: " .. tostring(question))
+    end
+
+    local currentValue = self.questionDefaultValues[question]
+    local reducer = self.questionReducers[question]
+
+    if self:exists(maybe_ent) and maybe_ent.attachments then
+        currentValue = askAttachments(maybe_ent, maybe_ent.attachments, reducer, currentValue)
+    end
+    for _,sys in ipairs(systems) do
+        local answer = sys[question](sys, maybe_ent, ...)
+        currentValue = reducer(currentValue, answer)
+    end
+    return currentValue
+end
+
 
 
 
