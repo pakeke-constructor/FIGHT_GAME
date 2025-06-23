@@ -4,7 +4,12 @@
 local World = objects.Class("es:World")
 
 
----@alias Entity table<string,any>
+local newEntityType = require(".EntityType")
+
+
+
+---@alias es.Entity table<string,any>|es.EntityClass
+---@alias Entity es.Entity
 
 
 local function isNumber(x)
@@ -62,16 +67,25 @@ local defEntityTc = typecheck.assert("string", "table")
 ---@param etype table<string, any>
 function World:defineEntity(name, etype)
     defEntityTc(name, etype)
-    self.definedEntityTypes[name] = etype
+    local ctor = newEntityType(name, self, etype)
+    self.definedEntityTypes[name] = ctor
 end
 
 
+---@param e es.Entity
+---@return es.World
 function World:_incorporateEntity(e)
     self.entities[e] = true
+    for c,_ in pairs(e:getSharedComponents()) do
+        if c:sub(1,1) ~= "_" then
+            self:_addComponent(e,c)
+        end
+    end
+    return self
 end
 
 
-local newEntityTc = typecheck.assert("number", "number")
+local newEntityTc = typecheck.assert("es:World", "string", "number", "number")
 
 
 ---@param name string
@@ -80,7 +94,7 @@ local newEntityTc = typecheck.assert("number", "number")
 ---@param ... unknown
 ---@return Entity
 function World:newEntity(name, x, y, ...)
-    newEntityTc(name, x, y)
+    newEntityTc(self, name, x, y)
     local ctor = self.definedEntityTypes[name]
     if not ctor then
         error("Invalid entity-type: " .. tostring(name))
@@ -96,7 +110,7 @@ end
 
 
 
----@param e Entity
+---@param e es.Entity
 ---@return boolean
 function World:exists(e)
     return self.entities[e]
@@ -125,7 +139,7 @@ function World:_removeComponent(e, comp)
     ---@type es.ComponentSystem
     local sys = self.componentSystems[comp]
     if sys then
-        sys:_removeInstantly(e)
+        sys:_removeBuffered(e)
     end
 end
 
@@ -235,9 +249,11 @@ end
 
 
 function World:flush()
-    for _,e in ipairs(self.rembuffer) do
-        for _, sys in pairs(self.componentSystems) do
-            ---@cast sys es.ComponentSystem
+    for _, sys in pairs(self.componentSystems) do
+        ---@cast sys es.ComponentSystem
+        sys:_flush()
+
+        for _,e in ipairs(self.rembuffer) do
             sys:_removeInstantly(e)
         end
     end

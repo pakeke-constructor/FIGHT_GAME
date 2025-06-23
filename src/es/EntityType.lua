@@ -1,25 +1,28 @@
 
 
 
+---@class es.EntityClass
+---@field protected _world es.World
+---@field protected _name es.World
+---@field init function
 local Entity = {}
-
-
-function Entity:getEntityType()
-    return self.___etype
-end
+local Entity_mt = {__index=Entity}
 
 
 
 function Entity:isSharedComponent(comp)
-    local etype = self.___etype
+    local etype = self:getSharedComponents()
     return (not rawget(self, comp)) and rawget(etype, comp) ~= nil
 end
+
 function Entity:isRegularComponent(comp)
     return rawget(self, comp) ~= nil
 end
+
 function Entity:hasComponent(comp)
     return rawget(self, comp) ~= nil
 end
+
 
 
 function Entity:_ensureAttachments()
@@ -48,6 +51,20 @@ end
 function Entity:_call(event, ...)
 
 end
+
+
+function Entity:getSharedComponents()
+    -- huge stinky hack! 
+    -- oh well, make sure we test it.
+    return getmetatable(self).__index
+end
+
+function Entity:iterateSharedComponents()
+    local shcomps = self:getSharedComponents()
+    
+end
+
+
 
 
 function Entity:getWorld()
@@ -111,7 +128,7 @@ local function newEntityType(name, world, etype)
     etype._name = name
 
     local ent_mt = {
-        __index = etype,
+        __index = setmetatable(etype, Entity_mt),
         __newindex = Entity.addComponent
     }
 

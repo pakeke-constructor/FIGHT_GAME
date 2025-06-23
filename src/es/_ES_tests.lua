@@ -5,8 +5,30 @@ local ComponentSystem = require(".ComponentSystem")
 local World = require(".World")
 
 
+
+local function assertTablesEqual(expected, actual, message)
+    message = message or "Assertion failed"
+    assert(type(expected) == "table")
+    assert(type(actual) == "table")
+
+    for key, expectedValue in pairs(expected) do
+        if actual[key] ~= expectedValue then
+            error(message .. ": key '" .. key .. "' expected " .. tostring(expectedValue) .. ", got " .. tostring(actual[key]))
+        end
+    end
+
+    for key, actualValue in pairs(actual) do
+        if expected[key] == nil then
+            error(message .. ": unexpected key '" .. key .. "' with value " .. tostring(actualValue))
+        end
+    end
+end
+
+
+
 ---@type es.World
 local w = World()
+---@cast w es.World
 
 local A = System()
 do
@@ -61,6 +83,33 @@ end
 
 
 w:defineComponent("foo")
+w:defineComponent("bar")
+
+
+-- basic entity tests
+do
+w:defineEntity("enty_1", {hi=3, foo = "foo"})
+
+local e = w:newEntity("enty_1",10,20)
+assert(e.x == 10)
+assert(e.y == 20)
+e:addComponent("foo", 1)
+e:addComponent("bar", 2)
+assert(e.foo == 1 and e.bar == 2)
+e:removeComponent("bar")
+assert(not e.bar)
+
+assertTablesEqual(e:getSharedComponents(), {
+    hi=3, foo="foo",
+    _name="enty_1", _world=w -- this is hacky, BRUHHH
+})
+end
+
+
+
+
+
+
 local CS = ComponentSystem("foo")
 do
 function CS:onAdded(ent)
@@ -70,9 +119,14 @@ function CS:onRemoved(ent)
     print("ja!", ent)
 end
 function CS:assertEntityCount(x)
-    assert(x == self:getEntityCount())
+    if (x ~= self:getEntityCount()) then
+        error(("entity count expected %d, but was %d")
+            :format(x, self:getEntityCount()))
+    end
 end
 end
+
+
 
 
 -- testing component-systems
@@ -81,18 +135,28 @@ w:addSystem(CS)
 w:defineEntity("cs_1", { foo = 1 })
 w:defineEntity("cs_2", {})
 
-w:newEntity("cs_1",0,0)
-w:newEntity("cs_2",0,0)
-local e = w:newEntity("cs_2",0,0)
-e.foo = 1
+local e0 = w:newEntity("cs_1",0,0)
+local e1 = w:newEntity("cs_2",0,0)
+
+local e2 = w:newEntity("cs_2",0,0)
+local e3 = w:newEntity("cs_2",0,0)
+e2.foo = 1
+e3.foo = 1
 
 w:call("assertEntityCount", 0)
 w:flush()
-w:call("assertEntityCount", 2)
-e:delete()
-w:call("assertEntityCount", 2)
+w:call("assertEntityCount", 3)
+
+e2:delete()
+w:call("assertEntityCount", 3)
 w:flush()
-w:call("assertEntityCount", 1)
+w:call("assertEntityCount", 2) -- e2 was deleted
+w:flush()
+e3:removeComponent("foo")
+w:call("assertEntityCount", 2) -- should be same...
+w:flush()
+w:call("assertEntityCount", 1) -- after flush, e3 was removed too
+
 end
 
 

@@ -15,6 +15,13 @@ function ComponentSystem:init()
 end
 
 
+local OVERRIDES = {
+    init = true,
+    onAdded = true,
+    onRemoved = true,
+}
+
+
 ---@param ent Entity
 function ComponentSystem:onAdded(ent)
 end
@@ -26,7 +33,6 @@ end
 
 ---@param e Entity
 function ComponentSystem:_addInstantly(e)
-    assert(fg.exists(e))
     self._entities:add(e)
     self._addbuffer:remove(e)
     if self.onAdded then
@@ -36,21 +42,18 @@ end
 
 ---@param e Entity
 function ComponentSystem:_addBuffered(e)
-    assert(fg.exists(e))
     self._addbuffer:add(e)
 end
 
 
 
 function ComponentSystem:_removeBuffered(e)
-    assert(fg.exists(e))
     self._addbuffer:remove(e)
     self._rembuffer:add(e)
 end
 
 
 function ComponentSystem:_removeInstantly(e)
-    assert(fg.exists(e))
     self._addbuffer:remove(e)
     self._entities:remove(e)
     if self.onRemoved then
@@ -71,7 +74,7 @@ function ComponentSystem:getEntityCount()
 end
 
 
-function ComponentSystem:flush()
+function ComponentSystem:_flush()
     if self._addbuffer:size() > 0 then
         -- do a copy coz we modify addbuffer when iterating
         local cpy = objects.Array(self._addbuffer)
@@ -128,7 +131,7 @@ local function newComponentSystemClass(component)
 
     local SystemClass_mt = {
         __newindex = function(t,k,v)
-            if ComponentSystem[k] and (k ~= "init") then
+            if ComponentSystem[k] and (not OVERRIDES[k]) then
                 error("Attempted to overwrite privaleged method")
             end
             rawset(t,k,v)
