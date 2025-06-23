@@ -42,6 +42,9 @@ end
 
 ---@param e Entity
 function ComponentSystem:_addBuffered(e)
+    if self._entities:has(e) then
+        return
+    end
     self._addbuffer:add(e)
 end
 

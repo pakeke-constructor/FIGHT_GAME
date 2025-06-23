@@ -84,11 +84,12 @@ end
 
 w:defineComponent("foo")
 w:defineComponent("bar")
+w:defineComponent("sharedComp")
 
 
 -- basic entity tests
 do
-w:defineEntity("enty_1", {hi=3, foo = "foo"})
+w:defineEntity("enty_1", {sharedComp=3, foo = "foo"})
 
 local e = w:newEntity("enty_1",10,20)
 assert(e.x == 10)
@@ -99,9 +100,17 @@ assert(e.foo == 1 and e.bar == 2)
 e:removeComponent("bar")
 assert(not e.bar)
 
+assert(e:isRegularComponent("x"))
+assert(e:isRegularComponent("foo"))
+assert(e:isSharedComponent("sharedComp"))
+assert(not e:isSharedComponent("y"))
+assert(not e:isRegularComponent("sharedComp"))
+
+assert(e:hasComponent("foo") and e:hasComponent("y"))
+
 assertTablesEqual(e:getSharedComponents(), {
-    hi=3, foo="foo",
-    _name="enty_1", _world=w -- this is hacky, BRUHHH
+    sharedComp=3, foo="foo",
+    _name="enty_1", _world=w -- is hacky, BRUHHH
 })
 end
 
@@ -116,7 +125,6 @@ function CS:onAdded(ent)
     ent.foo = "set"
 end
 function CS:onRemoved(ent)
-    print("ja!", ent)
 end
 function CS:assertEntityCount(x)
     if (x ~= self:getEntityCount()) then

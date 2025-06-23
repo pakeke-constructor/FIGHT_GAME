@@ -11,8 +11,8 @@ local Entity_mt = {__index=Entity}
 
 
 function Entity:isSharedComponent(comp)
-    local etype = self:getSharedComponents()
-    return (not rawget(self, comp)) and rawget(etype, comp) ~= nil
+    local shcomps = self:getSharedComponents()
+    return (not rawget(self, comp)) and (rawget(shcomps, comp) ~= nil)
 end
 
 function Entity:isRegularComponent(comp)
@@ -59,12 +59,6 @@ function Entity:getSharedComponents()
     return getmetatable(self).__index
 end
 
-function Entity:iterateSharedComponents()
-    local shcomps = self:getSharedComponents()
-    
-end
-
-
 
 
 function Entity:getWorld()
@@ -87,9 +81,12 @@ end
 
 ---@param comp string
 function Entity:removeComponent(comp)
-    rawset(self,comp,nil)
+    local isRegular = self:isRegularComponent(comp)
     local world = self:getWorld()
-    world:_removeComponent(self,comp)
+    rawset(self,comp,nil)
+    if isRegular then
+        world:_removeComponent(self,comp)
+    end
 end
 
 
