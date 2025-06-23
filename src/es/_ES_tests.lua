@@ -54,6 +54,9 @@ end
 defEvent("testState")
 defEvent("errorCall")
 defEvent("assertEntityCount")
+
+w:defineQuestion("testQuestion", function(x,y)return x+y end, 0)
+fg.defineEvent(ev)
 end
 
 
@@ -71,12 +74,15 @@ end
 function A:errorCall()
     error("fail")
 end
+function A:getX()
+    return self.x
+end
 end
 
 
 
 
--- testing calls / state, and init function
+-- testing events / questions / state, and init function
 do
 w:addSystem(A)
 w:call("testState")
