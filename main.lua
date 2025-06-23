@@ -71,6 +71,12 @@ setmetatable(_G, {
 })
 
 
+if consts.TEST then
+    require("src.es._ES_tests")
+end
+
+
+
 
 
 

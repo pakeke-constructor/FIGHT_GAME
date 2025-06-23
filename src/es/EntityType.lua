@@ -31,8 +31,11 @@ function Entity:_ensureAttachments()
     end
 
     self.attachments = {
-        calls = {--[[
-            [event] -> {atch1, atch2, ... }
+        events = {--[[
+            [event] -> objects.Set({atch1, atch2, ... })
+        ]]},
+        questions = {--[[
+            [question] -> objects.Set({atch1, atch2, ... })
         ]]}
     }
 end
@@ -40,6 +43,10 @@ end
 
 function Entity:attach(attachment)
     self:_ensureAttachments()
+    --[[
+    TODO:
+    att
+    ]]
 end
 
 function Entity:detach(attachment)

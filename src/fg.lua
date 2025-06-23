@@ -20,19 +20,51 @@ end
 
 
 
-local events = objects.Array()
+local definedEvents = objects.Set()
 
 function fg.defineEvent(ev)
     assert(fg.isLoadTime())
-    events:add(ev)
+    definedEvents:add(ev)
 end
+
+function fg.isEvent(ev)
+    return definedEvents:has(ev)
+end
+
+
+function fg.assertIsQuestionOrEvent(ev_or_question)
+    local isQuestionOrEvent = (fg.isQuestion(ev_or_question) or fg.isEvent(ev_or_question))
+    if not isQuestionOrEvent then
+        error("Invalid question/event: " .. tostring(ev_or_question), 2)
+    end
+end
+
+
+local questions = objects.Array()
+local definedQuestions = objects.Set()
+
+function fg.isQuestion(q)
+    return definedQuestions:has(q)
+end
+
+---@param question string
+---@param reducer fun(a:any, b:any): any
+---@param defaultValue any
+function fg.defineQuestion(question, reducer, defaultValue)
+    assert(fg.isLoadTime())
+    questions:add({
+        question = question,
+        reducer = reducer,
+        defaultValue = defaultValue
+    })
+    definedQuestions:add(question)
+end
+
 
 
 
 local es = require("src.es.es")
-if consts.TEST then
-    require("src.es._ES_tests")
-end
+
 
 fg.System = es.System
 fg.GroupSystem = es.GroupSystem
@@ -45,8 +77,12 @@ local currentWorld = nil
 
 function fg.newWorld()
     currentWorld = es.World()
-    for _,ev in ipairs(events) do
+    ---@cast currentWorld es.World
+    for _,ev in ipairs(definedEvents) do
         currentWorld:defineEvent(ev)
+    end
+    for _,q in ipairs(questions) do
+        currentWorld:defineQuestion(q.question, q.reducer, q.defaultValue)
     end
 
     -- add all auto-systems
@@ -60,24 +96,10 @@ end
 
 
 ---@param e Entity
-function fg.create(e)
-    assert(currentWorld)
-    currentWorld:incorporateEntity(e)
-end
-
----@param e Entity
-function fg.delete(e)
-    if currentWorld then
-        currentWorld:removeEntity(e)
-    end
-end
-
-
----@param e Entity
 function fg.destroy(e)
     if currentWorld then
-        fg.delete(e)
         currentWorld:call("destroy", e)
+        e:delete()
     end
 end
 

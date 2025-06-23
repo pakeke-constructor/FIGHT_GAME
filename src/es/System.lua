@@ -53,6 +53,9 @@ local function newSystemClass()
             if System[k] and (k ~= "init") then
                 error("Attempted to overwrite privaleged method")
             end
+            if type(v) == "function" then
+                fg.assertIsQuestionOrEvent(k)
+            end
             rawset(t,k,v)
         end,
         __call = newInstance

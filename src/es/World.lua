@@ -17,10 +17,6 @@ local function isNumber(x)
 end
 
 function World:init()
-    self.systems = {--[[
-        [SystemClass] -> system
-    ]]}
-
     self.definedComponents = {--[[
         [compName] -> typecheckFunc?
     ]]}
@@ -28,12 +24,15 @@ function World:init()
         [etypeName] -> etype
     ]]}
 
-    self.entities = {--[[
-        [e] -> true
+    self.systems = {--[[
+        [SystemClass] -> system
     ]]}
-
     self.componentSystems = {--[[
         [comp] -> system
+    ]]}
+
+    self.entities = {--[[
+        [e] -> true
     ]]}
 
     self.rembuffer = objects.Set()
@@ -153,33 +152,6 @@ end
 
 
 
----@param self es.World
----@param sys es.System
----@param ev string
-local function addCallback(self, ev, sys)
-    local systems = self.events[ev]
-    if (not systems) then
-        error("Invalid event: " .. tostring(ev))
-    end
-    systems:add(sys)
-end
-
----@param self es.World
----@param ev string
----@param sys es.System
-local function removeCallback(self, ev, sys)
-    local systems = self.events[ev]
-    if (not systems) then
-        error("Invalid event: " .. tostring(ev))
-    end
-    for i, syss in ipairs(systems) do
-        if syss == sys then
-            systems:remove(i)
-        end
-    end
-end
-
-
 
 
 ---@param systemClass es.System
@@ -194,8 +166,12 @@ function World:addSystem(systemClass)
         end
         self.componentSystems[comp] = sys
     end
-    for _, cb in ipairs(sys:getEventCallbacks()) do
-        addCallback(self, cb, sys)
+    for _, event in ipairs(sys:getEventCallbacks()) do
+        local systems = self.events[event]
+        if (not systems) then
+            error("Invalid event: " .. tostring(event))
+        end
+        systems:add(sys)
     end
     self.systems[systemClass] = sys
     return true
@@ -213,6 +189,18 @@ end
 
 
 
+---@param self es.World
+---@param ev string
+---@param sys es.System
+local function removeCallback(self, ev, sys)
+    local systems = self.events[ev]
+    assert(systems)
+    for i, syss in ipairs(systems) do
+        if syss == sys then
+            systems:remove(i)
+        end
+    end
+end
 
 
 ---@param systemClass es.System
