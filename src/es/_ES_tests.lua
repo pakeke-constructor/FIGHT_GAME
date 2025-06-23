@@ -42,6 +42,24 @@ end
 
 
 
+
+
+-- event defs
+do
+local function defEvent(ev)
+    w:defineEvent(ev)
+    fg.defineEvent(ev)
+end
+
+defEvent("testState")
+defEvent("errorCall")
+defEvent("assertEntityCount")
+end
+
+
+
+
+
 local A = System()
 do
 function A:init()
@@ -55,15 +73,6 @@ function A:errorCall()
 end
 end
 
-
-
--- event defs
-do
-w:defineEvent("testState")
-w:defineEvent("errorCall")
-
-w:defineEvent("assertEntityCount")
-end
 
 
 

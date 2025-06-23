@@ -10,6 +10,10 @@ function System:init()
     -- override this to initialize values
 end
 
+local OVERRIDES = {
+    init = true
+}
+
 
 ---@return es.World
 function System:getWorld()
@@ -50,10 +54,10 @@ local function newSystemClass()
 
     local SystemClass_mt = {
         __newindex = function(t,k,v)
-            if System[k] and (k ~= "init") then
+            if System[k] and (not OVERRIDES[k]) then
                 error("Attempted to overwrite privaleged method")
             end
-            if type(v) == "function" then
+            if (not OVERRIDES[k]) and type(v) == "function" then
                 fg.assertIsQuestionOrEvent(k)
             end
             rawset(t,k,v)
