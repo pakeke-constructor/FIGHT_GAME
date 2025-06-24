@@ -188,15 +188,12 @@ end
 
 
 
----@param self es.World
----@param ev string
+---@param arr objects.Array
 ---@param sys es.System
-local function removeCallback(self, ev, sys)
-    local systems = self.events[ev]
-    assert(systems)
-    for i, syss in ipairs(systems) do
+local function removeCallback(arr, sys)
+    for i, syss in ipairs(arr) do
         if syss == sys then
-            systems:remove(i)
+            arr:remove(i)
         end
     end
 end
@@ -207,8 +204,16 @@ function World:removeSystem(systemClass)
     local sys = self.systems[systemClass]
     if not sys then return end
     self.systems[systemClass] = nil
+
+    local comp = sys._component
+    if comp then
+        self.componentSystems[comp] = nil
+    end
     for _, cb in ipairs(sys:getEventCallbacks()) do
-        removeCallback(self, cb, sys)
+        removeCallback(self.events[cb], sys)
+    end
+    for _, cb in ipairs(sys:getQuestionCallbacks()) do
+        removeCallback(self.questions[cb], sys)
     end
 end
 
@@ -216,11 +221,6 @@ end
 
 function World:defineEvent(ev)
     self.events[ev] = objects.Array()
-end
-
-
-local function callAttachments(ent, attachments)
-    -- TODO: implement this later.
 end
 
 
@@ -233,7 +233,7 @@ function World:call(ev, maybe_ent, ...)
         error("Invalid event: " .. tostring(ev))
     end
     if self:exists(maybe_ent) and maybe_ent.attachments then
-        callAttachments(maybe_ent, maybe_ent.attachments)
+        maybe_ent:_callAttachments(ev, maybe_ent, ...)
     end
     for _,sys in ipairs(systems) do
         sys[ev](sys, maybe_ent, ...)
@@ -242,9 +242,6 @@ end
 
 
 
-local function askAttachments(ent, attachments, reducer, currentValue)
-    -- TODO: implement this later.
-end
 
 ---@param question string
 ---@param reducer fun(a:any, b:any): any
@@ -271,7 +268,7 @@ function World:ask(question, maybe_ent, ...)
     local reducer = self.questionReducers[question]
 
     if self:exists(maybe_ent) and maybe_ent.attachments then
-        currentValue = askAttachments(maybe_ent, maybe_ent.attachments, reducer, currentValue)
+        currentValue = maybe_ent:_askAttachments(question, reducer, currentValue, ...)
     end
     for _,sys in ipairs(systems) do
         local answer = sys[question](sys, maybe_ent, ...)

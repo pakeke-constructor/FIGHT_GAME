@@ -23,6 +23,7 @@ end
 local System = require(".System")
 local ComponentSystem = require(".ComponentSystem")
 local World = require(".World")
+local Attachment = require(".Attachment")
 
 
 
@@ -38,8 +39,10 @@ local function clearWorld()
         e:delete()
     end
     w:flush()
+    for sysClass,s in pairs(w.systems) do
+        w:removeSystem(sysClass)
+    end
 end
-
 
 
 
@@ -54,6 +57,8 @@ end
 defEvent("testState")
 defEvent("errorCall")
 defEvent("assertEntityCount")
+
+defEvent("testEvent")
 
 w:defineQuestion("testQuestion", function(x,y)return x+y end, 0)
 fg.defineQuestion("testQuestion", function(x,y)return x+y end, 0)
@@ -270,6 +275,100 @@ w:call("assertEntityCount", 2) -- after flush (e4 deleted, e5 added)
 
 clearWorld()
 end
+
+
+
+
+
+
+local TestAttachment = Attachment()
+do
+function TestAttachment:init(value, id)
+    self.value = value
+    self.id = id
+end
+
+function TestAttachment:testEvent()
+    self.value = self.value + 1
+end
+
+function TestAttachment:testQuestion()
+    return self.value
+end
+end
+
+
+
+-- testing basic attachment functionality
+do
+w:defineEntity("attachment_test_ent", {})
+
+local e = w:newEntity("attachment_test_ent", 0, 0)
+local atc = TestAttachment(5)
+
+e:attach(atc)
+assert(atc.ent == e)
+
+w:call("testEvent", e)
+assert(atc.value == 6)
+
+assert(w:ask("testQuestion", e) == 6)
+
+e:detach(atc)
+assert(atc.ent == nil)
+
+clearWorld()
+end
+
+
+-- testing attachment with ID
+do
+local e = w:newEntity("attachment_test_ent", 0, 0)
+local atc1 = TestAttachment(10, "test")
+local atc2 = TestAttachment(20, "test")
+
+e:attach(atc1)
+assert(e:getAttachmentById("test") == atc1)
+
+-- Should replace first attachment
+e:attach(atc2)
+assert(e:getAttachmentById("test") == atc2)
+assert(atc1.ent == nil)
+
+clearWorld()
+end
+
+
+-- testing multiple attachments
+do
+local e = w:newEntity("attachment_test_ent", 0, 0)
+local atc1 = TestAttachment(5)
+local atc2 = TestAttachment(10)
+
+e:attach(atc1)
+e:attach(atc2)
+
+w:call("testEvent", e)
+assert(atc1.value == 6 and atc2.value == 11)
+assert(w:ask("testQuestion", e) == 17) -- 6 + 11
+
+clearWorld()
+end
+
+
+-- testing detach by string ID
+do
+local e = w:newEntity("attachment_test_ent", 0, 0)
+local atc = TestAttachment(10, "test")
+
+e:attach(atc)
+e:detach("test")
+assert(atc.ent == nil)
+
+clearWorld()
+end
+
+
 
 
 

@@ -26,38 +26,123 @@ end
 
 
 function Entity:_ensureAttachments()
-    if self.attachments then
-        return
+    if not self.attachments then
+        self.attachments = {
+            ids = {--[[
+                [attachmentId] -> attachment
+            ]]},
+            events = {--[[
+                [event] -> objects.Set({atch1, atch2, ... })
+            ]]},
+            questions = {--[[
+                [question] -> objects.Set({atch1, atch2, ... })
+            ]]}
+        }
+    end
+end
+
+
+---@param atc es.Attachment
+function Entity:attach(atc)
+    self:_ensureAttachments()
+
+    local atcs = self.attachments
+    if atc.id  then
+        if atcs.ids[atc.id] then
+            local oldAtc = atcs.ids[atc.id]
+            self:detach(oldAtc)
+        end
+        atcs.ids[atc.id] = atc
     end
 
-    self.attachments = {
-        events = {--[[
-            [event] -> objects.Set({atch1, atch2, ... })
-        ]]},
-        questions = {--[[
-            [question] -> objects.Set({atch1, atch2, ... })
-        ]]}
-    }
-end
+    assert(not atc.ent, "Entity attached twice")
+    atc.ent = self
 
+    for _, event in ipairs(atc:getEvents()) do
+        atcs.events[event] = atcs.events[event] or objects.Set()
+        atcs.events[event]:add(atc)
+    end
+    
+    for _, question in ipairs(atc:getQuestions()) do
+        atcs.questions[question] = atcs.questions[question] or objects.Set()
+        atcs.questions[question]:add(atc)
+    end
 
-function Entity:attach(attachment)
-    self:_ensureAttachments()
-    --[[
-    TODO:
-    att
-    ]]
-end
-
-function Entity:detach(attachment)
-
+    if atc.onAttached then
+        atc:onAttached(atc.ent)
+    end
 end
 
 
 
-function Entity:_call(event, ...)
+---@param atc string|es.Attachment
+function Entity:detach(atc)
+    local atcs = self.attachments
+    if not atcs then return end
+    if type(atc) == "string" then
+        atc = self:getAttachmentById(atc)
+        if not atc then return end
+    end
+    if atc.id then
+        atcs.ids[atc.id] = nil
+    end
 
+    for _, event in ipairs(atc:getEvents()) do
+        if atcs.events[event] then
+            atcs.events[event]:remove(atc)
+        end
+    end
+    for _, question in ipairs(atc:getQuestions()) do
+        if atcs.questions[question] then
+            atcs.questions[question]:remove(atc)
+        end
+    end
+
+    if atc.onDetached then
+        atc:onDetached(atc.ent)
+    end
+    atc.ent = nil
 end
+
+
+
+function Entity:getAttachmentById(id)
+    return self.attachments.ids[id]
+end
+
+---@param event string
+---@param ... unknown
+function Entity:_callAttachments(event, ...)
+    local atcs = self.attachments
+    if not atcs or not atcs.events[event] then return end
+    for _, atc in ipairs(atcs.events[event]) do
+        if atc[event] then
+            atc[event](atc, self, ...)
+        end
+    end
+end
+
+
+---@param question string
+---@param reducer fun(a:any, b:any): any
+---@param value any
+---@param ... unknown
+---@return any
+function Entity:_askAttachments(question, reducer, value, ...)
+    local atcs = self.attachments
+    if not atcs or not atcs.questions[question] then return value end
+    local result = value
+    for _, atc in ipairs(atcs.questions[question]) do
+        if atc[question] then
+            local answer = atc[question](atc, self, ...)
+            result = reducer(result, answer)
+        end
+    end
+    
+    return result
+end
+
+
 
 
 function Entity:getSharedComponents()
