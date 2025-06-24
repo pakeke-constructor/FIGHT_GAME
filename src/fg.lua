@@ -67,7 +67,8 @@ local es = require("src.es.es")
 
 
 fg.System = es.System
-fg.GroupSystem = es.GroupSystem
+fg.ComponentSystem = es.ComponentSystem
+fg.Entity = es.Entity
 fg.Attachment = es.Attachment
 
 
@@ -85,7 +86,10 @@ function fg.newWorld()
         currentWorld:defineQuestion(q.question, q.reducer, q.defaultValue)
     end
 
-    -- add all auto-systems
+    local systems = fg.requireFolder("src.systems")
+    for _,sysClass in pairs(systems) do
+        currentWorld:addSystem(sysClass)
+    end
 end
 
 
@@ -93,6 +97,30 @@ end
 function fg.getWorld()
     return assert(currentWorld)
 end
+
+
+---@return es.World?
+function fg.tryGetWorld()
+    return currentWorld
+end
+
+
+---@param ev string
+---@param ... unknown
+function fg.call(ev, ...)
+    currentWorld:call(ev, ...)
+end
+
+
+---@param q string
+---@param ... unknown
+---@return unknown
+function fg.ask(q, ...)
+    return currentWorld:ask(q, ...)
+end
+
+
+
 
 
 ---@param e Entity
@@ -128,13 +156,15 @@ end
 
 
 function fg.requireFolder(path)
+    local results = {}
     fg.walkDirectory(path:gsub("%.", "/"), function(pth)
-        if pth:sub(-5,-1) == ".lua" then
+        if pth:sub(-4,-1) == ".lua" then
             pth = pth:sub(1, -5)
-            log.trace("loading file:", path)
-            require(pth:gsub("%/", "."))
+            log.trace("loading file:", pth)
+            results[pth] = require(pth:gsub("%/", "."))
         end
     end)
+    return results
 end
 
 

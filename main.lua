@@ -75,18 +75,30 @@ if consts.TEST then
     require("src.es._ES_tests")
 end
 
+require("src.events_questions")
 
 
 
 
 
 function love.draw()
-
+    local w = fg.tryGetWorld()
+    if w then
+        w:call("draw")
+    end
 end
 
 
 function love.update(dt)
+    local w = fg.tryGetWorld()
+    if w then
+        w:call("update", dt)
+    end
+end
 
+
+function love.load()
+    fg.newWorld()
 end
 
 

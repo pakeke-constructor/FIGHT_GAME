@@ -1,11 +1,13 @@
 
 
-local physics = {}
+local PhysicsSystem = fg.ComponentSystem("physics")
 
 
-local world = love.physics.newWorld()
+function PhysicsSystem:update()
+
+end
 
 
+return PhysicsSystem
 
-return physics
 
