@@ -4,7 +4,7 @@
 local World = objects.Class("es:World")
 
 
-local newEntityType = require(".EntityType")
+local newEntityType = require(".Entity")
 
 
 

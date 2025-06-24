@@ -81,6 +81,13 @@ end
 
 
 
+local A2 = System()
+function A2:testQuestion()
+    return 2
+end
+
+
+
 
 -- testing events / questions / state, and init function
 do
@@ -91,6 +98,8 @@ w:call("testState")
 
 assert(w:getSystem(A).x == 3)
 assert(w:ask("testQuestion") == 3)
+w:addSystem(A2)
+assert(w:ask("testQuestion") == 5)
 end
 
 

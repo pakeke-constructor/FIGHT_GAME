@@ -1,4 +1,5 @@
 
+local System = require(".System")
 
 
 ---@class es.ComponentSystem
@@ -98,18 +99,34 @@ function ComponentSystem:_flush()
 end
 
 
-
 --- gets events for this system
 ---@return string[]
 function ComponentSystem:getEventCallbacks()
     local buf = objects.Array()
     for k,v in pairs(self) do
-        if type(v) == "function" and (not ComponentSystem[k]) then
+        if type(v) == "function" and fg.isEvent(k) then
             buf:add(k)
         end
     end
     return buf
 end
+
+
+--- gets questions for this system
+---@return string[]
+function ComponentSystem:getQuestionCallbacks()
+    local buf = objects.Array()
+    for k,v in pairs(self) do
+        if type(v) == "function" and fg.isQuestion(k) then
+            buf:add(k)
+        end
+    end
+    return buf
+end
+
+
+
+
 
 
 local function newComponentSystemClass(component)

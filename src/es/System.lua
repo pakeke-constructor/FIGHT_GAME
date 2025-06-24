@@ -26,12 +26,27 @@ end
 function System:getEventCallbacks()
     local buf = objects.Array()
     for k,v in pairs(self) do
-        if type(v) == "function" and (not System[k]) then
+        if type(v) == "function" and fg.isEvent(k) then
             buf:add(k)
         end
     end
     return buf
 end
+
+
+--- gets questions for this system
+---@return string[]
+function System:getQuestionCallbacks()
+    local buf = objects.Array()
+    for k,v in pairs(self) do
+        if type(v) == "function" and fg.isQuestion(k) then
+            buf:add(k)
+        end
+    end
+    return buf
+end
+
+
 
 
 local function newSystemClass()
